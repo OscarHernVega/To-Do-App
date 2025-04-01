@@ -10,19 +10,15 @@ steps:
 
 - script: |
     sudo apt-get update
-    sudo apt-get install -y openjdk-17-jdk
+    sudo apt-get install -y openjdk-17-jdk docker.io
     wget https://downloads.apache.org/maven/maven-3/3.9.4/binaries/apache-maven-3.9.4-bin.tar.gz
     tar -xvzf apache-maven-3.9.4-bin.tar.gz
     sudo mv apache-maven-3.9.4 /opt/maven
     echo 'export PATH=$PATH:/opt/maven/bin' >> ~/.bashrc
     source ~/.bashrc
-  displayName: 'Instalar Maven manualmente'
+  displayName: 'Instalar Maven y docker manualmente'
 
-- script: |
-    sudo apt-get clean
-    sudo apt-get update
-    sudo apt-get install -y docker.io
-  displayName: 'Instalar Docker'
+
 
 - script: |
     sudo apt-get update
