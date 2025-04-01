@@ -35,7 +35,7 @@ steps:
   displayName: 'Levantando SonarQube con Docker'
 
 - script: |
-    echo 'Esperando a que SonarQube inicie...'
+    echo 'Esperando a que SonarQube inicialice...'
     until $(curl --output /dev/null --silent --head --fail http://localhost:9000); do
       printf '.'
       sleep 5
