@@ -50,8 +50,12 @@ steps:
 - script: |
     mvn clean verify sonar:sonar \
       -Dsonar.projectKey=Proyecto \
+      -Dsonar.projectName='Proyecto' \
       -Dsonar.host.url=http://localhost:9000 \
-      -Dsonar.login=$(SONAR_TOKEN)
+      -Dsonar.token=$(SONAR_TOKEN) \
+      -Dsonar.java.source=17 \
+      -Dsonar.sourceEncoding=UTF-8 \
+      -Dsonar.projectCreation.auto=true
   displayName: 'Ejecutar análisis de código con SonarQube'
 
 - script: |
