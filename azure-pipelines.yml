@@ -13,11 +13,13 @@ steps:
     jdkArchitectureOption: 'x64'
     jdkSourceOption: 'PreInstalled'
 
+
 - script: |
     sudo apt-get clean
     sudo apt-get update
-    sudo apt-get install -y maven docker.io
-  displayName: 'Instalar Maven y Docker'
+    sudo apt install maven
+    sudo apt-get install -y docker.io
+  displayName: 'Instalar Docker'
 
 - script: |
     sudo apt-get update
