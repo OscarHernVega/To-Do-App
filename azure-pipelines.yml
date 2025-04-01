@@ -17,7 +17,7 @@ steps:
 - script: |
     sudo apt-get clean
     sudo apt-get update
-    sudo apt install maven
+    sudo apt install maven -y
     sudo apt-get install -y docker.io
   displayName: 'Instalar Docker'
 
