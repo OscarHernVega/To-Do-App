@@ -1,22 +1,71 @@
-# Maven
-# Build your Java project and run tests with Apache Maven.
-# Add steps that analyze code, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/java
-
 trigger:
-- main
+  - main
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'
 
 steps:
-- task: Maven@3
+- checkout: self
+
+- task: JavaToolInstaller@1
   inputs:
-    mavenPomFile: 'pom.xml'
-    mavenOptions: '-Xmx3072m'
-    javaHomeOption: 'JDKVersion'
-    jdkVersionOption: '1.11'
+    versionSpec: '17'
     jdkArchitectureOption: 'x64'
-    publishJUnitResults: true
-    testResultsFiles: '**/surefire-reports/TEST-*.xml'
-    goals: 'package'
+    jdkSourceOption: 'PreInstalled'
+
+- script: |
+    sudo apt-get update
+    sudo apt-get install -y maven docker.io
+  displayName: 'Instalar Maven y Docker'
+
+- script: |
+    git clone https://github.com/sandesh300/To-Do-App.git
+    cd To-Do-App
+  displayName: 'Descargando repositorio'
+
+- script: |
+    docker run -d --name sonarqube -p 9000:9000 sonarqube:latest
+  displayName: 'Levantar SonarQube con Docker'
+
+- script: |
+    echo 'Esperando a que SonarQube inicie...'
+    until $(curl --output /dev/null --silent --head --fail http://localhost:9000); do
+      printf '.'
+      sleep 5
+    done
+  displayName: 'Esperar a que SonarQube esté listo'
+
+- script: |
+    TOKEN=$(curl -X POST -u admin:admin --silent "http://localhost:9000/api/user_tokens/generate" -d "name=AzureDevOpsToken" | jq -r .token)
+    echo "##vso[task.setvariable variable=SONAR_TOKEN]$TOKEN"
+  displayName: 'Generar Token de Autenticación en SonarQube'
+
+- script: |
+    mvn clean verify sonar:sonar \
+      -Dsonar.projectKey=Proyecto \
+      -Dsonar.host.url=http://localhost:9000 \
+      -Dsonar.login=$(SONAR_TOKEN)
+  displayName: 'Ejecutar análisis de código con SonarQube'
+
+- script: |
+    CRITICAL_ISSUES=$(curl -s -u admin:admin "http://localhost:9000/api/issues/search?severities=BLOCKER,CRITICAL" | jq '.total')
+    if [ "$CRITICAL_ISSUES" -gt 0 ]; then
+      echo "Se encontraron vulnerabilidades críticas o bloqueadoras. Falla el pipeline."
+      exit 1
+    fi
+  displayName: 'Verificar vulnerabilidades críticas o bloqueadoras'
+
+- script: |
+    curl -u admin:admin -o sonar-report.zip "http://localhost:9000/api/project_analyses/search?project=Proyecto"
+  displayName: 'Descargar informe de SonarQube'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathToPublish: 'sonar-report.zip'
+    artifactName: 'SonarQubeReport'
+  displayName: 'Publicar informe como artefacto en Azure DevOps'
+
+- script: |
+    docker stop sonarqube
+    docker rm sonarqube
+  displayName: 'Eliminar contenedor de SonarQube'
