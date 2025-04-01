@@ -14,9 +14,15 @@ steps:
     jdkSourceOption: 'PreInstalled'
 
 - script: |
+    sudo apt-get clean
     sudo apt-get update
     sudo apt-get install -y maven docker.io
   displayName: 'Instalar Maven y Docker'
+
+- script: |
+    sudo apt-get update
+    sudo apt-cache policy maven docker.io
+  displayName: 'Verificar disponibilidad de paquetes'
 
 - script: |
     git clone https://github.com/sandesh300/To-Do-App.git
